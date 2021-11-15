@@ -139,7 +139,7 @@ addRole = () => {
         .then(answerData => {
             const sql = `INSERT INTO role (title, salary, department_id)
                          VALUES ("${answerData.titleInfo}", ${answerData.salaryInfo}, ${answerData.departmentIdInfo})`;
-             db.query(sql, (err, rows) => {
+            db.query(sql, (err, rows) => {
                 if (err) {
                     throw err;
                 }
@@ -175,12 +175,12 @@ addEmployee = () => {
                 {
                     type: 'input',
                     name: 'firstName',
-                    message: 'What is the first name of the emplyee you are adding?'
+                    message: 'What is the first name of the employee you are adding?'
                 },
                 {
                     type: 'input',
                     name: 'lastName',
-                    message: 'What is the last name of the emplyee you are adding?'
+                    message: 'What is the last name of the employee you are adding?'
                 },
                 {
                     type: 'list',
@@ -198,8 +198,8 @@ addEmployee = () => {
             .then(answerData => {
                 db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
                     VALUES ("${answerData.firstName}", "${answerData.lastName}", ${answerData.roleId}, ${answerData.managerId})`, (err, data) => {
-                        if (err) {
-                         throw err;
+                    if (err) {
+                        throw err;
                     }
                     console.log('New employee has been added.')
                     promptUser();
@@ -209,9 +209,61 @@ addEmployee = () => {
     })
 };
 
-// updateRole = () => {
-//     const sql =
-// };
-
+updateRole = () => {
+    const sql = `SELECT CONCAT(employee.first_name, " ", employee.last_name) AS name, employee.id AS id FROM employee;`
+    db.query(sql, (err, result) => {
+        if (err) {
+            throw err;
+        }
+        const employees = result.map(employee => {
+            return {
+                name: employee.name,
+                value: employee.id
+            }
+        })
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'employeeChoice',
+                message: 'Choose which employee you would like to update:',
+                choices: employees
+            }
+        ])
+        .then(choice => {
+            const employee = choice.employeeChoice;
+            const params = [];
+            const sql = `SELECT role.title AS title, role.id AS id FROM role`;
+            db.query(sql, params, (err, result) => {
+                const newRoles = result.map(newRole => {
+                    return {
+                        name: newRole.title,
+                        value: newRole.id
+                    }
+                })
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'roleChoice',
+                        message: 'Choose the employees updated role:',
+                        choices: newRoles
+                    }
+                ])
+                .then((answers) => {
+                        const roleChoice = answers.roleChoice;
+                    params.push(roleChoice);
+                    params.push(employee);
+                    const sql = `UPDATE employee SET employee.role_id = ? WHERE employee.id = ?`;
+                    db.query(sql, params, (err, result) => {
+                        if (err) {
+                            throw err
+                        }
+                        console.log(result);
+                        viewEmployees();
+                    })
+                })
+            })
+        })
+    })
+};
 
 promptUser();
