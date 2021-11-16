@@ -24,36 +24,39 @@ const promptUser = () => {
     .then((answerData) => {
         // takes user data, depending what they choose the following will happen:
         const { choice } = answerData;
-        if (choice === 'view all departments') {
-            viewDepartments();
-        }
-        if (choice === 'view all roles') {
-            viewRoles();
-        }
-        if (choice === 'view all employees') {
-            viewEmployees();
-        }
-        if (choice === 'add a department') {
-            addDepartment();
-        }
-        if (choice === 'add a role') {
-            addRole();
-        }
-        if (choice === 'add an employee') {
-            addEmployee();
-        }
-        if (choice === 'update employee role') {
-            updateRole();
-        }
-        if (choice === 'exit') {
-            console.log('GOODBYE')
-            process.exit(0)
+        switch (choice) {
+            case 'view all departments':
+                viewDepartments();
+                break;
+            case 'view all roles':
+                viewRoles();
+                break;
+            case 'view all employees':
+                viewEmployees();
+                break;
+            case 'add a department':
+                addDepartment();
+                break;
+            case 'add a role':
+                addRole();
+                break;
+            case 'add an employee':
+                addEmployee();
+                break;
+            case 'update employee role':
+                updateRole();
+                break;
+            default:
+                console.log('GOODBYE'),
+                process.exit(0)
+                break;
         }
     });
 };
 
 // views all of the departments
 viewDepartments = () => {
+    // select everything from the department table sorting by abc order
     const sql = `SELECT * FROM department ORDER BY id ASC`;
     db.query(sql, (err, rows) => {
         if (err) {
@@ -64,6 +67,7 @@ viewDepartments = () => {
     })
 };
 
+// select everything from the role table sorting by abc order
 viewRoles = () => {
     const sql = `SELECT * FROM role ORDER BY id ASC`;
     db.query(sql, (err, rows) => {
@@ -75,6 +79,7 @@ viewRoles = () => {
     })
 };
 
+// select everything from the employee table sorting by abc order
 viewEmployees = () => {
     const sql = `SELECT * FROM employee ORDER BY id ASC`;
     db.query(sql, (err, rows) => {
@@ -86,6 +91,7 @@ viewEmployees = () => {
     })
 };
 
+// adds a department
 addDepartment = () => {
     inquirer.prompt([
         {
@@ -94,6 +100,7 @@ addDepartment = () => {
             message: 'What department would you like to add?'
         }
     ])
+    // taking user data and insert it into the department table
     .then(answerData => {
         const sql = `INSERT INTO department (name)
                      VALUES ("${answerData.departmentInfo}")`;
@@ -107,17 +114,21 @@ addDepartment = () => {
     })
 };
 
+// adding a role
 addRole = () => {
+    // selects everything from the department table
     db.query('SELECT * FROM department', (err, data) => {
         if (err) {
             throw err;
         }
+        // loops through department data and grabs the name and id
         const departments = data.map(department => {
             return {
                 name: department.name,
                 value: department.id
             }
         })
+        // prompt the user
         inquirer.prompt([
             {
                 type: 'input',
@@ -137,6 +148,7 @@ addRole = () => {
             }
         ])
         .then(answerData => {
+            // takes user data and inserts it into the role table
             const sql = `INSERT INTO role (title, salary, department_id)
                          VALUES ("${answerData.titleInfo}", ${answerData.salaryInfo}, ${answerData.departmentIdInfo})`;
             db.query(sql, (err, rows) => {
@@ -150,21 +162,26 @@ addRole = () => {
     })
 };
 
+// adding an employee
 addEmployee = () => {
+    // select everything from the role table
     db.query(`SELECT * FROM role`, (err, roleData) => {
         if (err) {
             throw err;
         }
+        // select everything from the employee table
         db.query(`SELECT * FROM employee`, (err, employeeData) => {
             if (err) {
                 throw err;
             }
+            // loop through role data to grab the title and id
             const roles = roleData.map(role => {
                 return {
                     name: role.title,
                     value: role.id
                 }
             })
+            // loops through managers to grab their first/last name and their id
             const managers = employeeData.map(manager => {
                 return {
                     name: manager.first_name + ' ' + manager.last_name,
@@ -196,6 +213,7 @@ addEmployee = () => {
                 }
             ])
             .then(answerData => {
+                // takes the user data and inserts it into the employee table:
                 db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
                     VALUES ("${answerData.firstName}", "${answerData.lastName}", ${answerData.roleId}, ${answerData.managerId})`, (err, data) => {
                     if (err) {
@@ -209,18 +227,22 @@ addEmployee = () => {
     })
 };
 
+// update an existing role
 updateRole = () => {
-    const sql = `SELECT CONCAT(employee.first_name, " ", employee.last_name) AS name, employee.id AS id FROM employee;`
+    // slecting first/last name from the employee table
+    const sql = `SELECT CONCAT(employee.first_name, " ", employee.last_name) AS name, employee.id AS id FROM employee`;
     db.query(sql, (err, result) => {
         if (err) {
             throw err;
         }
+        // loop through employee table to get the name and id
         const employees = result.map(employee => {
             return {
                 name: employee.name,
                 value: employee.id
             }
         })
+        // prompt the user
         inquirer.prompt([
             {
                 type: 'list',
@@ -229,28 +251,35 @@ updateRole = () => {
                 choices: employees
             }
         ])
+        // take user data
         .then(choice => {
             const employee = choice.employeeChoice;
             const params = [];
+            // select the title and id from the role table
             const sql = `SELECT role.title AS title, role.id AS id FROM role`;
             db.query(sql, params, (err, result) => {
+                // loop through the selected employee and grab the title and id
                 const newRoles = result.map(newRole => {
                     return {
                         name: newRole.title,
                         value: newRole.id
                     }
                 })
+                // promt the user
                 inquirer.prompt([
                     {
                         type: 'list',
                         name: 'roleChoice',
-                        message: 'Choose the employees updated role:',
+                        message: 'Choose the employees new updated role:',
                         choices: newRoles
                     }
                 ])
+                // take the user data 
                 .then((answers) => {
-                        const roleChoice = answers.roleChoice;
+                    const roleChoice = answers.roleChoice;
+                    // pushes the new role to the role id
                     params.push(roleChoice);
+                    // push the info to the selected employee
                     params.push(employee);
                     const sql = `UPDATE employee SET employee.role_id = ? WHERE employee.id = ?`;
                     db.query(sql, params, (err, result) => {
