@@ -1,10 +1,10 @@
-const db = require('./db/connection')
+const db = require('./db/connection');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 
 // promts the user what to select
 const promptUser = () => {
-    return inquirer.prompt([
+     inquirer.prompt([
         {
             type: 'list',
             name: 'choice',
