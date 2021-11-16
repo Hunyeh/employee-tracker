@@ -133,12 +133,28 @@ addRole = () => {
             {
                 type: 'input',
                 name: 'titleInfo',
-                message: 'What is the title of the role you are adding?'
+                message: 'What is the title of the role you are adding?',
+                validate: titleInput => {
+                    if (titleInput) {
+                        return true;
+                    } else {
+                        console.log('Please enter a title.');
+                        return false;
+                    }
+                }
             },
             {
                 type: 'input',
                 name: 'salaryInfo',
-                message: 'What is the salary of the employee you are adding?'
+                message: 'What is the salary of the employee you are adding?',
+                validate: salaryInput => {
+                    if (salaryInput) {
+                        return true;
+                    } else {
+                        console.log('Please enter a salary.');
+                        return false;
+                    }
+                }
             },
             {
                 type: 'list',
@@ -192,12 +208,28 @@ addEmployee = () => {
                 {
                     type: 'input',
                     name: 'firstName',
-                    message: 'What is the first name of the employee you are adding?'
+                    message: 'What is the first name of the employee you are adding?',
+                    validate: nameInput => {
+                        if (nameInput) {
+                            return true;
+                        } else {
+                            console.log('Please enter your name!');
+                            return false;
+                        }
+                    }
                 },
                 {
                     type: 'input',
                     name: 'lastName',
-                    message: 'What is the last name of the employee you are adding?'
+                    message: 'What is the last name of the employee you are adding?',
+                    validate: lastnameInput => {
+                        if (lastnameInput) {
+                            return true;
+                        } else {
+                            console.log('Please enter your name!');
+                            return false;
+                        }
+                    }
                 },
                 {
                     type: 'list',
